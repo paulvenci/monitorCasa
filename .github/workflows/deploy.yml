@@ -22,9 +22,16 @@ jobs:
 
       - name: Inject Secrets
         run: |
-          sed -e "s|{{SUPABASE_URL}}|${{ secrets.SUPABASE_URL }}|g" \
-              -e "s|{{SUPABASE_ANON_KEY}}|${{ secrets.SUPABASE_ANON_KEY }}|g" \
-              js/config.js.template > js/config.js
+          cp js/config.js.template js/config.js
+          sed -i "s|{{SUPABASE_URL}}|${{ secrets.SUPABASE_URL }}|g" js/config.js
+          sed -i "s|{{SUPABASE_ANON_KEY}}|${{ secrets.SUPABASE_ANON_KEY }}|g" js/config.js
+
+      - name: Verify Files
+        run: |
+          echo "Listing js directory:"
+          ls -l js/
+          echo "Checking if js/config.js was created:"
+          if [ -f js/config.js ]; then echo "js/config.js exists"; else echo "js/config.js MISSING"; exit 1; fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
