@@ -5,7 +5,7 @@
       Estado del Agua
     </h2>
 
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
         <v-card class="pa-4 mb-4 text-center" border="opacity-10">
           <div class="tank-visual-large mx-auto mb-4">
@@ -17,10 +17,13 @@
                   :style="`height: ${nivelAgua}%`"
                 ></div>
               </v-fade-transition>
-              <div class="tank-label-large text-h3">{{ nivelAgua }}%</div>
+              <div class="tank-label-large text-h3">{{ store.formatNumber(nivelAgua, 1) }}%</div>
+            </div>
+            <div class="mt-2 text-tiny text-muted" v-if="store.agua.actual?.created_at">
+              Actualizado {{ store.timeSince(store.agua.actual?.created_at) }}
             </div>
           </div>
-          <div class="text-h6 font-weight-bold">{{ litros }} Litros</div>
+          <div class="text-h6 font-weight-bold">{{ store.formatNumber(litros, 0) }} Litros</div>
           <div class="text-caption text-muted">Tanque: {{ capacidad }}L | Calibración: {{ offset }}cm</div>
         </v-card>
       </v-col>
@@ -36,8 +39,8 @@
               class="mr-3"
             ></v-icon>
             <div>
-              <div class="text-h6 font-weight-bold">{{ battery }}%</div>
-              <div class="text-caption text-muted">Voltaje Batería: {{ voltBattery }}V</div>
+              <div class="text-h6 font-weight-bold">{{ store.formatNumber(battery, 0) }}%</div>
+              <div class="text-caption text-muted">Voltaje Batería: {{ store.formatNumber(voltBattery, 2) }}V</div>
             </div>
           </div>
         </v-card>
@@ -47,41 +50,57 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAppStore } from '../store/app.js'
 
 const store = useAppStore()
 
+// Datos reactivos
 const nivelAgua = computed(() => store.agua.actual?.nivel_porcentaje || 0)
-const capacidad = computed(() => store.agua.actual?.tanque_capacidad_litros || 1000)
-const litros = computed(() => Math.round((nivelAgua.value / 100) * capacidad.value))
-const offset = computed(() => store.agua.actual?.jsn_sr04t_offset_cm || 0)
-
+const litros = computed(() => {
+  const cap = store.config.tanque_capacidad_litros || 1000
+  return Math.round((nivelAgua.value / 100) * cap)
+})
 const battery = computed(() => store.agua.actual?.porcentaje_bateria || 0)
-const voltBattery = computed(() => (store.agua.actual?.voltaje_bateria || 0).toFixed(2))
+const voltBattery = computed(() => store.agua.actual?.voltaje_bateria || 0)
+const capacidad = computed(() => store.config.tanque_capacidad_litros || 1000)
+const offset = computed(() => store.config.jsn_sr04t_offset_cm || 0)
 
 const batteryColor = computed(() => {
-  if (battery.value > 70) return 'success'
-  if (battery.value > 30) return 'warning'
+  if (battery.value > 50) return 'success'
+  if (battery.value > 20) return 'warning'
   return 'error'
 })
 
 const batteryIcon = computed(() => {
-  if (battery.value > 90) return 'mdi-battery'
-  if (battery.value > 10) return `mdi-battery-${Math.floor(battery.value / 10) * 10}`
-  return 'mdi-battery-outline'
+  if (battery.value > 80) return 'mdi-battery'
+  if (battery.value > 50) return 'mdi-battery-60'
+  if (battery.value > 20) return 'mdi-battery-30'
+  return 'mdi-battery-alert'
+})
+
+onMounted(() => {
+  const url = import.meta.env.VITE_SUPABASE_URL || 'https://vlccxzzbfuammgyxzogb.supabase.co'
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_QM0Sst87rAe1Z1DdzJiVOg_pPKmmxEl'
+  
+  if (url && key) {
+    store.initSupabase(url, key).then(() => {
+      store.fetchAguaRealtime()
+      store.setupRealtimeSubscriptions()
+    })
+  }
 })
 </script>
 
 <style scoped>
 .tank-visual-large {
   width: 150px;
-  height: 250px;
+  height: auto;
 }
 
 .tank-body-large {
   width: 100%;
-  height: 100%;
+  height: 250px;
   border: 4px solid #0984e3;
   border-radius: 12px;
   position: relative;
