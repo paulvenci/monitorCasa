@@ -1,0 +1,10 @@
+# Dependencias
+node_modules/
+
+# Configuración y Secretos
+.env
+js/config.js
+
+# OS
+.DS_Store
+Thumbs.db
