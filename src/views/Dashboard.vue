@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-view">
+  <div class="dashboard-view pb-16">
     <div class="d-flex align-center mb-6">
       <div class="header-glow"></div>
       <h2 class="text-h4 font-weight-black d-flex align-center title-gradient">

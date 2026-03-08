@@ -1,5 +1,5 @@
 <template>
-  <div class="energia-view">
+  <div class="energia-view pb-16">
     <div class="d-flex align-center mb-6">
       <h2 class="text-h4 font-weight-black title-gradient">Energía</h2>
     </div>

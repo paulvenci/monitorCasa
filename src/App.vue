@@ -100,8 +100,8 @@ html, body, .v-application {
 .main-content {
   position: relative;
   overflow-y: auto;
-  height: 100vh;
-  padding-bottom: 90px !important; /* Espacio para el nav flotante */
+  height: 100dvh;
+  padding-bottom: 140px !important; /* Espacio extra para el nav flotante */
 }
 
 .logo-text {

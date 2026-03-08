@@ -29,7 +29,7 @@
       </v-col>
 
       <v-col cols="12">
-        <v-card class="pa-4" border="opacity-10">
+        <v-card class="pa-4 mb-16" border="opacity-10">
           <div class="text-overline text-muted mb-2">Estado del Sensor</div>
           <div class="d-flex align-center">
             <v-icon 
