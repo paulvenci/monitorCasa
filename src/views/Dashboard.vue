@@ -9,84 +9,98 @@
     </div>
 
     <v-row density="compact">
-      <!-- Fila 1: Métricas Principales -->
-      <v-col cols="12" sm="8">
-        <v-row density="compact">
-          <!-- Resumen Mensual (Costo y kWh) -->
-          <v-col cols="12">
-            <v-card class="premium-card pa-4 mb-2">
-              <div class="d-flex align-center justify-space-between mb-3">
-                <span class="text-overline font-weight-bold title-gradient">Resumen Mensual</span>
-                <v-icon icon="mdi-calendar-month" color="primary"></v-icon>
+      <v-col cols="12">
+        <v-card class="premium-card pa-4 mb-3 overview-card">
+          <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
+            <div>
+              <div class="text-overline font-weight-bold title-gradient">Resumen de tu cuenta electrica</div>
+              <div class="text-caption text-muted">
+                {{ store.billingProfile.distribuidora }} | {{ store.billingProfile.comuna }}, {{ store.billingProfile.region }}
               </div>
-              <v-row>
-                <v-col cols="6" class="border-right-glow">
-                  <div class="text-caption text-muted mb-1">Costo Proyectado</div>
-                  <div class="text-h4 font-weight-black text-white">
-                    <span class="text-h6 text-muted mr-1">$</span>{{ store.formatNumber(store.costoProyectado, 0) }}
-                  </div>
-                  <div class="text-tiny text-muted mt-1" v-if="store.config?.tarifa_activa">
-                    Tarifa {{ store.config?.tarifa_activa }}
-                  </div>
-                </v-col>
-                <v-col cols="6" class="pl-4">
-                  <div class="text-caption text-muted mb-1">Energía Acumulada</div>
-                  <div class="text-h4 font-weight-black text-primary">
-                    {{ store.formatNumber(store.energiaMes, 2) }}
-                    <span class="text-subtitle-1 text-muted">kWh</span>
-                  </div>
-                  <div class="text-tiny text-muted mt-1" v-if="store.energia.actual?.created_at">
-                    {{ store.timeSince(store.energia.actual?.created_at) }}
-                  </div>
-                </v-col>
-              </v-row>
-            </v-card>
-          </v-col>
+            </div>
+            <v-btn to="/energia" variant="tonal" color="primary" size="small">
+              Ver detalle
+            </v-btn>
+          </div>
 
-          <v-col cols="12">
-            <metric-card
-              label="Consumo en Tiempo Real"
-              :value="potencia"
-              unit="Watts"
-              icon="mdi-lightning-bolt"
-              color="primary"
-              :trend="5.2"
-              trend-text="vs. promedio"
-              :timestamp="store.energia.actual?.created_at"
-              :decimals="0"
-            />
-          </v-col>
-          
-          <v-col cols="6">
-            <metric-card
-              label="Tensión Red"
-              :value="voltaje"
-              unit="V"
-              icon="mdi-sine-wave"
-              color="secondary"
-              :timestamp="store.energia.actual?.created_at"
-              :decimals="1"
-            />
-          </v-col>
-
-          <v-col cols="6">
-            <metric-card
-              label="Intensidad"
-              :value="corriente"
-              unit="Amp"
-              icon="mdi-current-ac"
-              color="accent"
-              :timestamp="store.energia.actual?.created_at"
-              :decimals="2"
-            />
-          </v-col>
-        </v-row>
+          <v-row density="compact">
+            <v-col cols="12" md="4">
+              <div class="summary-block summary-block--bill">
+                <div class="summary-label">Factura referencial</div>
+                <div class="summary-value">$ {{ store.formatNumber(invoiceReference.total, 0) }}</div>
+                <div class="summary-caption">{{ store.formatNumber(invoiceReference.kwh, 2) }} kWh</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="4">
+              <div class="summary-block summary-block--monitor">
+                <div class="summary-label">Electrosun</div>
+                <div class="summary-value">$ {{ store.formatNumber(monitorEstimate.total, 0) }}</div>
+                <div class="summary-caption">{{ store.formatNumber(monitorEstimate.kwh, 2) }} kWh medidos</div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="4">
+              <div class="summary-block summary-block--delta">
+                <div class="summary-label">Diferencia</div>
+                <div class="summary-value">{{ signedCurrency(differenceTotal) }}</div>
+                <div class="summary-caption">{{ signedPercent(differencePercent) }} del total referencial</div>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card>
       </v-col>
 
-      <!-- Fila 1 Col 2: Tanque de Agua -->
-      <v-col cols="12" sm="4">
-        <v-card class="premium-card tank-card h-100 pa-4 d-flex flex-column align-center justify-center">
-          <div class="tank-visualization">
+      <v-col cols="12" md="7">
+        <v-card class="premium-card pa-4 mb-3 h-100">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div>
+              <div class="text-overline font-weight-bold title-gradient">Consumo y cobro del periodo</div>
+              <div class="text-caption text-muted">Base para conciliar la boleta con el monitoreo</div>
+            </div>
+          </div>
+
+          <v-row density="compact">
+            <v-col cols="12" sm="6">
+              <div class="metric-box">
+                <div class="metric-label">Energia acumulada</div>
+                <div class="metric-value">{{ store.formatNumber(store.energiaMes, 2) }} <span class="unit">kWh</span></div>
+              </div>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <div class="metric-box">
+                <div class="metric-label">Costo estimado Electrosun</div>
+                <div class="metric-value">$ {{ store.formatNumber(monitorEstimate.total, 0) }}</div>
+              </div>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <div class="metric-box">
+                <div class="metric-label">Tension red</div>
+                <div class="metric-value">{{ store.formatNumber(voltaje, 1) }} <span class="unit">V</span></div>
+              </div>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <div class="metric-box">
+                <div class="metric-label">Intensidad</div>
+                <div class="metric-value">{{ store.formatNumber(corriente, 2) }} <span class="unit">Amp</span></div>
+              </div>
+            </v-col>
+          </v-row>
+
+          <div class="highlight-note mt-4">
+            La referencia se calcula con el perfil de facturacion configurado, incluyendo distribuidora, ubicacion y ajustes porcentuales del ciclo.
+          </div>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="5">
+        <v-card class="premium-card tank-card h-100 pa-4 d-flex flex-column">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div>
+              <div class="text-overline font-weight-black text-primary-light">Reserva de Agua</div>
+              <div class="text-caption text-muted">{{ store.timeSince(store.agua.actual?.created_at) || 'sin lectura reciente' }}</div>
+            </div>
+          </div>
+
+          <div class="tank-visualization mx-auto">
             <div class="tank-glass">
               <div class="liquid" :style="`height: ${nivelAgua}%`" :class="{ 'warning-liquid': nivelAgua < 20 }">
                 <div class="wave"></div>
@@ -98,40 +112,42 @@
               <span class="val">{{ store.formatNumber(nivelAgua, 1) }}</span>
               <span class="pct">%</span>
             </div>
-            <div class="tank-time-badge" v-if="store.agua.actual?.created_at">
-              {{ store.timeSince(store.agua.actual?.created_at) }}
-            </div>
           </div>
-          <div class="mt-6 text-center">
-            <div class="text-overline font-weight-black text-primary-light">Reserva de Agua</div>
-            <div class="text-h4 font-weight-black">{{ store.formatNumber(nivelLitros, 0) }}<span class="text-subtitle-1 ml-1 text-muted">L</span></div>
+
+          <div class="mt-4">
+            <v-row density="compact">
+              <v-col cols="6">
+                <div class="water-pill">{{ store.formatNumber(nivelLitros, 0) }} L</div>
+              </v-col>
+              <v-col cols="6">
+                <div class="water-pill">{{ store.formatNumber(bateria, 0) }}% / {{ store.formatNumber(voltBattery, 2) }}V</div>
+              </v-col>
+            </v-row>
           </div>
         </v-card>
       </v-col>
 
-      <!-- Fila 2: Alertas y Gráfico (Simplificado para el preview actual) -->
       <v-col cols="12">
         <v-card class="premium-card pa-4 mt-2">
           <div class="d-flex align-center justify-space-between mb-4">
             <div class="d-flex align-center">
               <v-icon icon="mdi-bell-ring-outline" color="warning" class="mr-2"></v-icon>
-              <span class="text-overline font-weight-black">Alertas del Sistema</span>
+              <span class="text-overline font-weight-black">Alertas del sistema</span>
             </div>
             <v-btn variant="text" color="primary" size="small" to="/eventos">Ver todo</v-btn>
           </div>
-          
+
           <v-list bg-color="transparent" class="pa-0">
             <v-list-item
               v-for="evento in eventos"
               :key="evento.id"
               class="event-item mb-2 rounded-lg"
-              :prepend-icon="getEventIcon(evento.tipo)"
             >
               <v-list-item-title class="font-weight-bold">{{ evento.titulo }}</v-list-item-title>
               <v-list-item-subtitle class="text-muted">{{ formatDate(evento.created_at) }}</v-list-item-subtitle>
-              
+
               <template v-slot:prepend>
-                <v-icon :color="getEventColor(evento.tipo)" size="small" class="mr-4"></v-icon>
+                <v-icon :icon="getEventIcon(evento.tipo)" :color="getEventColor(evento.tipo)" size="small" class="mr-4"></v-icon>
               </template>
             </v-list-item>
           </v-list>
@@ -144,14 +160,14 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useAppStore } from '../store/app.js'
-import MetricCard from '../components/MetricCard.vue'
 
 const store = useAppStore()
 
-const potencia = computed(() => store.energia.actual?.potencia || 0)
 const voltaje = computed(() => store.energia.actual?.voltaje || 220)
 const corriente = computed(() => store.energia.actual?.corriente || 0)
 const nivelAgua = computed(() => store.agua.actual?.nivel_porcentaje || 0)
+const bateria = computed(() => store.agua.actual?.porcentaje_bateria || 0)
+const voltBattery = computed(() => store.agua.actual?.voltaje_bateria || 0)
 const nivelLitros = computed(() => {
   const cap = store.config.tanque_capacidad_litros || 1000
   return Math.round((nivelAgua.value / 100) * cap)
@@ -159,37 +175,56 @@ const nivelLitros = computed(() => {
 
 const eventos = computed(() => store.eventos.slice(0, 3))
 
+const monitorEstimate = computed(() => store.monitorEstimate)
+const invoiceReference = computed(() => store.invoiceReference)
+
+const differenceTotal = computed(() => invoiceReference.value.total - monitorEstimate.value.total)
+const differencePercent = computed(() => {
+  if (!invoiceReference.value.total) return 0
+  return (differenceTotal.value / invoiceReference.value.total) * 100
+})
+
+const signedCurrency = (value) => {
+  const sign = value >= 0 ? '+' : '-'
+  return `${sign}$ ${store.formatNumber(Math.abs(value), 0)}`
+}
+
+const signedPercent = (value) => {
+  const sign = value >= 0 ? '+' : '-'
+  return `${sign}${store.formatNumber(Math.abs(value), 1)}%`
+}
+
 const getEventIcon = (tipo) => {
   const icons = {
-    'corte_luz': 'mdi-flash-off',
-    'restauracion_luz': 'mdi-flash-check',
-    'consumo_alto': 'mdi-trending-up',
-    'nivel_bajo': 'mdi-water-alert',
-    'nivel_critico': 'mdi-alert-octagon',
-    'bateria_baja': 'mdi-battery-alert'
+    corte_luz: 'mdi-flash-off',
+    restauracion_luz: 'mdi-flash-check',
+    consumo_alto: 'mdi-trending-up',
+    nivel_bajo: 'mdi-water-alert',
+    nivel_critico: 'mdi-alert-octagon',
+    bateria_baja: 'mdi-battery-alert'
   }
   return icons[tipo] || 'mdi-information-outline'
 }
 
-const getEventColor = (tipo) => {
+const getEventColor = (tipo = '') => {
   if (tipo.includes('critico') || tipo.includes('corte')) return 'error'
   if (tipo.includes('bajo') || tipo.includes('alto')) return 'warning'
   return 'success'
 }
 
 const formatDate = (dateString) => {
+  if (!dateString) return '--'
   const date = new Date(dateString)
   return new Intl.RelativeTimeFormat('es', { numeric: 'auto' }).format(
-    Math.round((date - new Date()) / 60000), 
+    Math.round((date - new Date()) / 60000),
     'minute'
   )
 }
 
 onMounted(() => {
-  // Usar variables de entorno con fallbacks para desarrollo local
   const url = import.meta.env.VITE_SUPABASE_URL || 'https://vlccxzzbfuammgyxzogb.supabase.co'
   const key = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_QM0Sst87rAe1Z1DdzJiVOg_pPKmmxEl'
-  
+
   if (url && key) {
     store.initSupabase(url, key).then(() => {
       store.fetchEnergiaRealtime()
@@ -217,21 +252,99 @@ onMounted(() => {
   border-radius: 20px !important;
 }
 
-.border-right-glow {
+.overview-card {
   position: relative;
+  overflow: hidden;
 }
 
-.border-right-glow::after {
+.overview-card::before {
   content: '';
   position: absolute;
-  right: 0;
-  top: 10%;
-  height: 80%;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, rgba(0, 206, 201, 0.5), transparent);
+  inset: auto -10% -45% 50%;
+  height: 260px;
+  background: radial-gradient(circle, rgba(0, 206, 201, 0.16), transparent 70%);
+  pointer-events: none;
 }
 
-/* Visualización del Tanque Avanzada */
+.summary-block {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.summary-block--bill {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.summary-block--monitor {
+  background: rgba(0, 206, 201, 0.12);
+}
+
+.summary-block--delta {
+  background: rgba(9, 132, 227, 0.16);
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+}
+
+.summary-value {
+  font-size: clamp(1.35rem, 2vw, 1.9rem);
+  font-weight: 900;
+  color: #fff;
+}
+
+.summary-caption {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.metric-box {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  height: 100%;
+}
+
+.metric-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-weight: 800;
+  color: #ffffff;
+  font-size: 1.15rem;
+}
+
+.unit {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.highlight-note {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.tank-card {
+  min-height: 100%;
+}
+
 .tank-visualization {
   position: relative;
   width: 140px;
@@ -296,19 +409,14 @@ onMounted(() => {
   pointer-events: none;
 }
 
-.tank-time-badge {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.4);
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.7);
-  z-index: 10;
-  backdrop-filter: blur(4px);
-  white-space: nowrap;
+.water-pill {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+  color: #fff;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .event-item {
